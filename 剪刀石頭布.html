@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSS 樣式 -->
+    <link rel="stylesheet" href="./style.css">
+    <!-- Sweetalert2 CDN -->
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>翻牌遊戲－剪刀石頭布</title>
+</head>
+
+<body>
+    <div id="game">
+        <div id="player1-area">
+            <div id="player1"></div>
+        </div>
+
+        <div id="center"></div>
+
+        <div id="player2-area">
+            <div id="player2"></div>
+        </div>
+    </div>
+    <div id="game-list">
+        <table>
+            <tr>
+                <th colspan="2">設定牌數</th>
+            </tr>
+            <tr>
+                <td>剪刀：<span id="ScissorsCardNum">0</span> 張</td>
+                <td>石頭：<span id="RockCardNum">0</span> 張</td>
+            </tr>
+            <tr>
+                <td>布：<span id="PaperCardNum">0</span> 張</td>
+                <td>無敵：<span id="StarCardNum">0</span> 張</td>
+            </tr>
+        </table>
+        <hr>
+        <h2>記分板</h2>
+        <div class="row">
+            <div class="col">
+                <h3>player1</h3>
+                <span id="p1score">0</span>
+            </div>
+            <div class="col">
+                <h3>player2</h3>
+                <span id="p2score">0</span>
+            </div>
+        </div>
+        <div id="del"></div>
+    </div>
+    <!-- Jquery -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+    <script>
+        Swal.fire({
+            title: '遊戲介紹',
+            color: 'rgb(47, 67, 124)',
+            html: '<h3>遊戲中會出現剪刀、石頭、布、無敵的牌</h3><p>1.  自定義牌的數量 ( 牌的總和要為偶數 ) </p><p>2.  player1、player2依照順序各出一張牌</p><p>3.  滑鼠點擊中間的任一張牌，會打開牌</p><p>4.  滑鼠再次點擊中間的任一張牌，計分</p><p>5.  滑鼠再次點擊中間的任一張牌，消失</p><h3>player1、player2再次選牌直到遊戲結束</h3>'
+        }).then(function(result){
+            Swal.fire({
+            title: '設定牌數',
+            html:
+            '剪刀：<input id="scissors" class="swal2-input"><br>'+
+            '石頭：<input id="rock" class="swal2-input"><br>'+
+            '&emsp;布：<input id="paper" class="swal2-input"><br>'+
+            '無敵：<input id="star" class="swal2-input"><br>',
+            preConfirm: () => {
+                const ScardNum=parseInt($('#scissors').val()), RcardNum=parseInt($('#rock').val()), PcardNum=parseInt($('#paper').val()), WcardNum=parseInt($('#star').val())
+                $('#ScissorsCardNum').text(ScardNum)
+                $('#RockCardNum').text(RcardNum)
+                $('#PaperCardNum').text(PcardNum)
+                $('#StarCardNum').text(WcardNum)
+                const count = ScardNum + PcardNum + RcardNum + WcardNum
+                // 產生 剪刀、石頭、布、無敵牌
+                if (count % 2 == 0){
+                    for (let i = 0; i < ScardNum; i++) {
+                        $('#game').append(`
+                        <div class="card">
+                            <div class="card-front"></div>
+                            <div class="card-back"></div>
+                        </div>
+                        `)
+                        $('.card').eq(i).find('.card-front').css('background-image', `url('./images/剪刀石頭布/scissors.png')`)
+                    }
+                    for (let i = 0; i < PcardNum; i++) {
+                        $('#game').append(`
+                        <div class="card">
+                            <div class="card-front"></div>
+                            <div class="card-back"></div>
+                        </div>
+                        `)
+                        for (let i = ScardNum; i < count; i++) {
+                            $('.card').eq(i).find('.card-front').css('background-image', `url('./images/剪刀石頭布/paper.png')`)
+                        }
+                    }
+                    for (let i = 0; i < RcardNum; i++) {
+                        $('#game').append(`
+                        <div class="card">
+                            <div class="card-front"></div>
+                            <div class="card-back"></div>
+                        </div>
+                        `)
+                        for (let i = ScardNum + PcardNum; i < count; i++) {
+                            $('.card').eq(i).find('.card-front').css('background-image', `url('./images/剪刀石頭布/rock.png')`)
+                        }
+                    }
+                    for (let i = 0; i < WcardNum; i++) {
+                        $('#game').append(`
+                        <div class="card">
+                            <div class="card-front"></div>
+                            <div class="card-back"></div>
+                        </div>
+                        `)
+                        for (let i = ScardNum + PcardNum + RcardNum; i < count; i++) {
+                            $('.card').eq(i).find('.card-front').css('background-image', `url('./images/剪刀石頭布/star.png')`)
+                        }
+                    }
+
+                     // 打散
+            for (let i = 0; i < count; i++) {
+                const target = Math.round(Math.random() * (count - 1))
+                $('.card').eq(target).insertAfter($('.card').eq(i))
+            }
+
+            // 卡分給p1、p2
+            for (let i = 0; i < count / 2; i++) {
+                $('#player1').append($('.card').eq(i))
+                $('.card').eq(i).addClass('player1card')
+            }
+            for (let i = count / 2; i < count; i++) {
+                $('#player2').append($('.card').eq(i))
+                $('.card').eq(i).addClass('player2card')
+            }
+
+            // 點開p1或p2的牌
+            let p1score = 0, p2score = 0, centerClickCount = 0, playerClickCount = 1
+
+
+            if (playerClickCount === 1) {
+
+                $('.player1card').addClass('card-open')
+
+                $('#player1').on('click', '.card', function () {
+                    playerClickCount++
+                    $('.card-open').removeClass('card-open')
+                    $('#center').append($(this).addClass('center'))
+
+                    $('.player2card').addClass('card-open')
+                    $('#player2').on('click', '.card', function () {
+                        playerClickCount++
+                        $('.card-open').removeClass('card-open')
+                        $('#center').append($(this).addClass('center'))
+
+                        if ($('.center').length === 2) {
+
+                            $('#center').on('click', '.card', function () {
+                                centerClickCount++
+                                $('.center').addClass('card-open')
+                                if (centerClickCount === 2) {
+                                    if ($('.center').eq(0).find('.card-front').css('background-image') === $('.center').eq(1).find('.card-front').css('background-image')) {
+                                        alert('平手')
+                                    }
+                                    else if (
+                                        ($('.center').eq(0).find('.card-front').css('background-image').includes('scissors') && $('.center').eq(1).find('.card-front').css('background-image').includes('paper')) ||
+                                        ($('.center').eq(0).find('.card-front').css('background-image').includes('rock') && $('.center').eq(1).find('.card-front').css('background-image').includes('scissors')) ||
+                                        ($('.center').eq(0).find('.card-front').css('background-image').includes('paper') && $('.center').eq(1).find('.card-front').css('background-image').includes('rock')) ||
+                                        $('.center').eq(0).find('.card-front').css('background-image').includes('star')) {
+                                        p1score++
+                                        $('#p1score').text(p1score)
+                                        alert('player1贏了，得一分')
+                                    }
+
+                                    else {
+                                        p2score++
+                                        $('#p2score').text(p2score)
+                                        alert('player2贏了，得一分')
+
+                                    }
+                                }
+                                else if (centerClickCount === 3) {
+                                    $('.card-open .card-front').fadeTo(1000, 0)
+                                    $('#del').append($('.center'))
+
+                                    setTimeout(function () {
+                                        $('.card-open').each(function () {
+                                            if ($(this).find('.card-front').css('opacity') !== '1') {
+                                                $(this).css('opacity', 0)
+                                            }
+                                        })
+                                        $('.card-open').removeClass('card-open')
+                                        $('.player1card').addClass('card-open')
+                                    }, 1000)
+                                    if ($('#del .card').length == count) {
+                                        if (p1score === p2score) {
+                                            Swal.fire({
+                                                title: '遊戲結束，雙方平手',
+                                                color: 'rgb(47, 67, 124)'
+                                            })
+                                        }
+                                        else if (p1score > p2score) {
+                                            Swal.fire({
+                                                title: '遊戲結束，player1獲勝',
+                                                color: 'rgb(47, 67, 124)'
+                                            })
+                                        }
+                                        else {
+                                            Swal.fire({
+                                                title: '遊戲結束，player2獲勝',
+                                                color: 'rgb(47, 67, 124)'
+                                            })
+                                        }
+                                    }
+                                    centerClickCount = 0
+                                    playerClickCount = 1
+                                }
+
+                            })
+                        }
+
+                    })
+                })
+            }
+                }else{
+                    Swal.fire({
+                        title: '卡牌數量總和要為偶數，請重新整理，再次輸入',
+                        color: 'rgb(47, 67, 124)'
+                    })
+                }
+                
+            
+            }
+        })
+        })
+                
+    </script>
+</body>
+
+</html>
