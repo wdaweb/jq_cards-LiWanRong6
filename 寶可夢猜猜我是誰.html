@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <!-- Sweetalert2 CDN -->
+   <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <title>翻牌遊戲－寶可夢猜猜我是誰</title>
+  <style>
+
+    html,body{
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body{
+      width:100vw;
+      height: 100vh;
+      background:url('./images/寶可夢/背景.png')no-repeat center/cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      width: 150px;
+      height: 190px;
+      position: relative;
+      float: left;
+      margin: 10px;
+
+      /* 設定子元素在3D空間*/
+      transform-style: preserve-3d;
+      transition: transform 1s;
+    }
+
+    .card-front {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      background-image: url('./images/寶可夢/呆殼獸.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: absolute;
+      transform: rotateY(180deg);
+      /* 翻過來後隱藏列一面 */
+      backface-visibility: hidden;
+    }
+
+    .card-back {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      background-image: url('./images/寶可夢/背面.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: absolute;
+      backface-visibility: hidden;
+    }
+
+    .card-open {
+      transform: rotateY(180deg);
+    }
+
+    #game {
+      width: 680px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game">
+
+  </div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+  <script>
+    //產生卡片
+    const images=['月亮伊布','月亮伊布剪影','皮卡丘','皮卡丘剪影','呆殼獸','呆殼獸剪影','超極巨化噴火龍','超極巨化噴火龍剪影','超夢','超夢剪影','毽子棉','毽子棉剪影']
+    for (let i = 0; i < images.length; i++) {
+      $('#game').append(`
+      <div class="card">
+        <div class="card-front"></div>
+        <div class="card-back"></div>
+      </div>
+      `)
+    }
+    for (let i = 0; i < images.length; i++) {
+      //決定數字
+      $('.card').eq(i).find('.card-front').css('background-image', `url('./images/寶可夢/${images[i]}.png')`)
+      if(i%2!==0){
+        $('.card').eq(i).attr('data-card', images[i].slice(0,images[i].length-2))
+      }
+      else{
+        $('.card').eq(i).attr('data-card',  images[i])
+      }
+
+      //打散
+      const target = Math.round(Math.random() * (images.length-1))
+      $('.card').eq(target).insertAfter($('.card').eq(i))
+    }
+
+    // 翻開兩張牌
+    $('#game').on('click', '.card', function () {
+      //最多一次翻兩張，且這張牌還沒翻開
+      if ($('.card-open').length < 2 && !$(this).hasClass('card-open')) {
+        $(this).addClass('card-open')
+      }
+      if ($('.card-open').length == 2) {
+        if ($('.card-open').eq(0).attr('data-card') === $('.card-open').eq(1).attr('data-card')) {
+          $('.card-open').addClass('card-ok')
+          $('.card-open .card-front').fadeTo(1000, 0)
+        }
+      
+        setTimeout(function () {
+          $('.card-open').each(function () {
+            if ($(this).find('.card-front').css('opacity') !== '1') {
+              $(this).css('opacity', 0)
+            }
+          })
+          $('.card-open').removeClass('card-open')
+          if ($('.card-ok').length === 12) {
+            Swal.fire({
+            title: '恭喜過關',
+            color: 'rgb(47, 67, 124)'
+        })
+          }
+        }, 1000)
+      }
+    })
+  </script>
+
+</body>
+
+</html>
